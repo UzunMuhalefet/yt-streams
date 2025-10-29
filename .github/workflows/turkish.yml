@@ -46,16 +46,30 @@ jobs:
         run: |
           python main.py ${{ env.CONFIG_FILE }} --folder ${{ env.OUTPUT_FOLDER }}
       
+      - name: List output files
+        run: |
+          echo "Contents of ${{ env.OUTPUT_FOLDER }}:"
+          ls -la ${{ env.OUTPUT_FOLDER }}/ || echo "Folder does not exist"
+          echo ""
+          echo "Git status:"
+          git status
+      
       - name: Check for changes
         id: git-check
         run: |
-          git diff --exit-code || echo "changes=true" >> $GITHUB_OUTPUT
+          git add ${{ env.OUTPUT_FOLDER }}/ || true
+          if git diff --cached --quiet; then
+            echo "No changes detected"
+            echo "changes=false" >> $GITHUB_OUTPUT
+          else
+            echo "Changes detected"
+            echo "changes=true" >> $GITHUB_OUTPUT
+          fi
       
       - name: Commit and push changes
         if: steps.git-check.outputs.changes == 'true'
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          git add ${{ env.OUTPUT_FOLDER }}/
           git commit -m "Update streams: ${{ env.CONFIG_FILE }}"
           git push
