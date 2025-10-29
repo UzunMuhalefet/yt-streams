@@ -10,7 +10,14 @@ import sys
 import argparse
 import time
 import re
-import requests
+try:
+    import cloudscraper
+    CLOUDSCRAPER_AVAILABLE = True
+except ImportError:
+    import requests
+    CLOUDSCRAPER_AVAILABLE = False
+    print("⚠ Warning: cloudscraper not installed. Install with: pip install cloudscraper")
+    print("⚠ Falling back to basic requests (JS challenges may not work)")
 from pathlib import Path
 from urllib.parse import urlencode, urlparse
 
@@ -22,15 +29,29 @@ MAX_RETRIES = 3
 RETRY_DELAY = 2  # seconds
 
 # Create a session for connection pooling
-session = requests.Session()
-# Configure adapter with retry settings
-adapter = requests.adapters.HTTPAdapter(
-    pool_connections=10,
-    pool_maxsize=20,
-    max_retries=0  # We handle retries manually
-)
-session.mount('http://', adapter)
-session.mount('https://', adapter)
+if CLOUDSCRAPER_AVAILABLE:
+    # Use cloudscraper to handle JavaScript challenges
+    scraper = cloudscraper.create_scraper(
+        browser={
+            'browser': 'chrome',
+            'platform': 'windows',
+            'mobile': False
+        },
+        delay=10
+    )
+    session = scraper
+    print("✓ Using cloudscraper for JavaScript challenge bypass")
+else:
+    # Fallback to regular requests
+    session = requests.Session()
+    adapter = requests.adapters.HTTPAdapter(
+        pool_connections=10,
+        pool_maxsize=20,
+        max_retries=0
+    )
+    session.mount('http://', adapter)
+    session.mount('https://', adapter)
+    print("⚠ Using basic requests (limited challenge support)")
 
 
 def load_config(config_path):
@@ -94,12 +115,14 @@ def fetch_stream_url(stream_config):
     try:
         # Follow redirects and get final m3u8 URL
         print(f"  → Sending GET request (timeout={TIMEOUT}s)...")
+        
+        # Cloudscraper handles JS challenges automatically
         response = session.get(
             url, 
             timeout=TIMEOUT, 
             allow_redirects=True,
             headers={
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
                 'Accept': '*/*',
                 'Connection': 'keep-alive'
             }
@@ -119,34 +142,39 @@ def fetch_stream_url(stream_config):
         
         response.raise_for_status()
         
-        # Check for JavaScript challenge
-        redirect_url = solve_js_challenge(response, slug)
-        if redirect_url:
-            print(f"  → Following extracted redirect URL...")
-            
-            # Make second request to the actual m3u8 URL
-            response2 = session.get(
-                redirect_url,
-                timeout=TIMEOUT,
-                allow_redirects=True,
-                headers={
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-                    'Accept': '*/*',
-                    'Connection': 'keep-alive',
-                    'Referer': url
-                }
-            )
-            
-            print(f"  → Second request status: {response2.status_code}")
-            print(f"  → Content Length: {len(response2.content)} bytes")
-            
-            response2.raise_for_status()
-            response = response2  # Use the second response
+        # Check if we still got a challenge page (shouldn't happen with cloudscraper)
+        if not CLOUDSCRAPER_AVAILABLE:
+            redirect_url = solve_js_challenge(response, slug)
+            if redirect_url:
+                print(f"  → Manually following extracted redirect URL...")
+                
+                # Make second request to the actual m3u8 URL
+                response2 = session.get(
+                    redirect_url,
+                    timeout=TIMEOUT,
+                    allow_redirects=True,
+                    headers={
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                        'Accept': '*/*',
+                        'Connection': 'keep-alive',
+                        'Referer': url
+                    }
+                )
+                
+                print(f"  → Second request status: {response2.status_code}")
+                print(f"  → Content Length: {len(response2.content)} bytes")
+                
+                response2.raise_for_status()
+                response = response2  # Use the second response
         
         # Check if content looks like m3u8
         content_preview = response.text[:200] if len(response.text) > 200 else response.text
         if '#EXTM3U' in content_preview:
             print(f"  ✓ Valid m3u8 content detected")
+        elif '<html' in content_preview.lower():
+            print(f"  ✗ Error: Received HTML instead of m3u8")
+            print(f"  → Content preview: {content_preview[:150]}...")
+            return None, 'HTMLResponse'
         else:
             print(f"  ⚠ Warning: Content doesn't start with #EXTM3U")
             print(f"  → Content preview: {content_preview[:100]}...")
@@ -154,38 +182,33 @@ def fetch_stream_url(stream_config):
         # The response should be the m3u8 content
         return response.text, None
         
-    except requests.exceptions.Timeout as e:
-        error_type = 'Timeout'
-        print(f"✗ Timeout error for {slug}: Request exceeded {TIMEOUT}s")
-        print(f"  → Error details: {e}")
-        return None, error_type
-    except requests.exceptions.ConnectionError as e:
-        error_type = 'ConnectionError'
-        print(f"✗ Connection error for {slug}: {type(e).__name__}")
-        print(f"  → Error details: {e}")
-        print(f"  → URL attempted: {url}")
-        return None, error_type
-    except requests.exceptions.HTTPError as e:
-        error_type = f'HTTPError-{e.response.status_code}'
-        print(f"✗ HTTP error for {slug}: {e.response.status_code}")
-        print(f"  → Response: {e.response.text[:200] if e.response.text else 'No content'}")
-        return None, error_type
-    except requests.exceptions.RequestException as e:
-        error_type = type(e).__name__
-        print(f"✗ Request error for {slug}: {type(e).__name__}")
-        print(f"  → Error details: {e}")
-        print(f"  → Error type: {type(e)}")
-        if hasattr(e, 'response') and e.response is not None:
-            print(f"  → Response status: {e.response.status_code}")
-            print(f"  → Response headers: {dict(e.response.headers)}")
-        return None, error_type
     except Exception as e:
-        error_type = type(e).__name__
-        print(f"✗ Unexpected error for {slug}: {type(e).__name__}")
-        print(f"  → Error details: {e}")
-        import traceback
-        print(f"  → Traceback: {traceback.format_exc()}")
-        return None, error_type
+        # Handle both cloudscraper and requests exceptions
+        error_module = type(e).__module__
+        
+        if 'timeout' in str(e).lower() or 'timed out' in str(e).lower():
+            error_type = 'Timeout'
+            print(f"✗ Timeout error for {slug}: Request exceeded {TIMEOUT}s")
+            print(f"  → Error details: {e}")
+            return None, error_type
+        elif 'connection' in str(e).lower() or 'remote' in str(e).lower():
+            error_type = 'ConnectionError'
+            print(f"✗ Connection error for {slug}: {type(e).__name__}")
+            print(f"  → Error details: {e}")
+            print(f"  → URL attempted: {url}")
+            return None, error_type
+        elif hasattr(e, 'response') and e.response is not None:
+            error_type = f'HTTPError-{e.response.status_code}'
+            print(f"✗ HTTP error for {slug}: {e.response.status_code}")
+            print(f"  → Response: {e.response.text[:200] if e.response.text else 'No content'}")
+            return None, error_type
+        else:
+            error_type = type(e).__name__
+            print(f"✗ Request error for {slug}: {type(e).__name__}")
+            print(f"  → Error details: {e}")
+            import traceback
+            print(f"  → Traceback: {traceback.format_exc()}")
+            return None, error_type
 
 
 def reverse_hls_quality(m3u8_content):
