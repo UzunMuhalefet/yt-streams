@@ -1,0 +1,584 @@
+[
+  {
+    "type": "channel",
+    "slug": "tolgshow-filtresiz",
+    "id": "UCfyPw7vYwIVb6OuDIf7qeOQ",
+    "subfolder": "dizi"
+  },
+  {
+    "type": "channel",
+    "slug": "ahaber",
+    "id": "UCKQhfw-lzz0uKnE1fY1PsAA",
+    "subfolder": "dizi"
+  },
+  {
+    "type": "channel",
+    "slug": "akilli-arabalar",
+    "id": "UCdNmxu3-x1Q3FSA11laRn6A",
+    "subfolder": "cocuk"
+  },
+  {
+    "type": "channel",
+    "slug": "abb-tv",
+    "id": "UCHPDorZxpe9c6WDnXKHCjYA",
+    "subfolder": "yerel"
+  },
+  {
+    "type": "channel",
+    "slug": "apara",
+    "id": "UCzrGg6iyRDuUSnO0cQ5oLcA",
+    "subfolder": "haber"
+  },
+  {
+    "type": "channel",
+    "slug": "ariza",
+    "id": "UCxJhBb04eELBRYgFgAzJQBg",
+    "subfolder": "dizi"
+  },
+  {
+    "type": "channel",
+    "slug": "arkadasim-hosgeldin",
+    "id": "UCOYerJedhQqSyhXkev8QRFA",
+    "subfolder": "dizi"
+  },
+  {
+    "type": "channel",
+    "slug": "arzu-film",
+    "id": "UCUALYmnkEmx8vlxIbpr2gmw",
+    "subfolder": "film"
+  },
+  {
+    "type": "channel",
+    "slug": "aski-neva",
+    "id": "UCJ5bBXls09z7Cjwg-qBzAZQ",
+    "subfolder": "dini"
+  },
+  {
+    "type": "channel",
+    "slug": "aski-memnu",
+    "id": "UCIdiuKAg5xVZsvXDQbOG4cg",
+    "subfolder": "dizi"
+  },
+  {
+    "type": "channel",
+    "slug": "aspor",
+    "id": "UCJElRTCNEmLemgirqvsW63Q",
+    "subfolder": "spor"
+  },
+  {
+    "type": "channel",
+    "slug": "avrupa-yakasi",
+    "id": "UCgc3VJYdM_R8oKGRuXxUbKQ",
+    "subfolder": "dizi"
+  },
+  {
+    "type": "channel",
+    "slug": "aziz",
+    "id": "UCYR7EAv7P9L4Rg8vEXua2nQ",
+    "subfolder": "dizi"
+  },
+  {
+    "type": "channel",
+    "slug": "bebek-sarkilari",
+    "id": "UCokzL9BoHjKXssspsYeFGUQ",
+    "subfolder": "cocuk"
+  },
+  {
+    "type": "channel",
+    "slug": "behzatc",
+    "id": "UCH3WnhFSx9r850HJRRs16lQ",
+    "subfolder": "dizi"
+  },
+  {
+    "type": "channel",
+    "slug": "bizimevtv",
+    "id": "UCIHMK8qtjB_GNuXmeex6i8g",
+    "subfolder": "diger"
+  },
+  {
+    "type": "channel",
+    "slug": "bloomberght",
+    "id": "UCApLxl6oYQafxvykuoC2uxQ",
+    "subfolder": "haber"
+  },
+  {
+    "type": "channel",
+    "slug": "cubbeli-ahmet",
+    "id": "UC4o8w_8iedvUVYp77TdheqA",
+    "subfolder": "dini"
+  },
+  {
+    "type": "channel",
+    "slug": "kral-sakir-cn",
+    "id": "UCehmwSZGPod7JFbHJspmxzQ",
+    "subfolder": "cocuk"
+  },
+  {
+    "type": "channel",
+    "slug": "cennet-mahallesi",
+    "id": "UCOqe-z52nnpVSAe8Ds0fxaA",
+    "subfolder": "dizi"
+  },
+  {
+    "type": "channel",
+    "slug": "cnbc-e",
+    "id": "UCaO-M1dXacMwtyg0Pvovk4w",
+    "subfolder": "haber"
+  },
+  {
+    "type": "channel",
+    "slug": "cnnturk",
+    "id": "UCV6zcRug6Hqp1UX_FdyUeBg",
+    "subfolder": "haber"
+  },
+  {
+    "type": "channel",
+    "slug": "diyanet-cocuk",
+    "id": "UCCfTktnzWK__FUN4gj0zIpA",
+    "subfolder": "cocuk"
+  },
+  {
+    "type": "channel",
+    "slug": "diyanet-tv",
+    "id": "UC3d1AdmvAP6Jq16-WpD086g",
+    "subfolder": "dini"
+  },
+  {
+    "type": "channel",
+    "slug": "dudaktan-kalbe",
+    "id": "UCUNWa7KzyrQWGUZoSMRU9jw",
+    "subfolder": "dizi"
+  },
+  {
+    "type": "channel",
+    "slug": "ekoturk",
+    "id": "UCAGVKxpAKwXMWdmcHbrvcwQ",
+    "subfolder": "haber"
+  },
+  {
+    "type": "channel",
+    "slug": "emret-komutanim",
+    "id": "UCGKPVBUcJcEMvqceX3Pl5Lw",
+    "subfolder": "dizi"
+  },
+  {
+    "type": "channel",
+    "slug": "fatmagul",
+    "id": "UCmeIlUqcw49tOsE82LXz_zg",
+    "subfolder": "dizi"
+  },
+  {
+    "type": "channel",
+    "slug": "flash-haber",
+    "id": "UCNcjCb2RnA3eMMhTZSxZu3A",
+    "subfolder": "haber"
+  },
+  {
+    "type": "channel",
+    "slug": "fmtv",
+    "id": "UC8rH0jVvMy_NzU_syP444Wg",
+    "subfolder": "dini"
+  },
+  {
+    "type": "channel",
+    "slug": "gonul-dagi",
+    "id": "UC6zAMy6boneCLJzRKiiwzmQ",
+    "subfolder": "dizi"
+  },
+  {
+    "type": "channel",
+    "slug": "guldur-guldur",
+    "id": "UCdlEXiVLTEvA280oyMvr8Kw",
+    "subfolder": "dizi"
+  },
+  {
+    "type": "channel",
+    "slug": "haberglobal",
+    "id": "UCtc-a9ZUIg0_5HpsPxEO7Qg",
+    "subfolder": "haber"
+  },
+  {
+    "type": "channel",
+    "slug": "haberturk",
+    "id": "UCn6dNfiRE_Xunu7iMyvD7AA",
+    "subfolder": "haber"
+  },
+  {
+    "type": "channel",
+    "slug": "halktv",
+    "id": "UCf_ResXZzE-o18zACUEmyvQ",
+    "subfolder": "haber"
+  },
+  {
+    "type": "channel",
+    "slug": "htspor",
+    "id": "UCK3mI2lsk3LSo8PBUc8JTSw",
+    "subfolder": "spor"
+  },
+  {
+    "type": "channel",
+    "slug": "hzyusuf",
+    "id": "UCOpKuda5Ld_oc0Gdr31knmA",
+    "subfolder": "dizi"
+  },
+  {
+    "type": "channel",
+    "slug": "istanbul-muhafizlari",
+    "id": "UCGtZEUJXdNbMqzan_VbA_3w",
+    "subfolder": "cocuk"
+  },
+  {
+    "type": "channel",
+    "slug": "inci-taneleri",
+    "id": "UCUxSoTMNflf9TAlZbml7XMw",
+    "subfolder": "dizi"
+  },
+  {
+    "type": "channel",
+    "slug": "kanal47",
+    "id": "UCLtZGAMgInMU7m7oAnFe0fQ",
+    "subfolder": "yerel"
+  },
+  {
+    "type": "channel",
+    "slug": "kanal5",
+    "id": "UCVebw64Db0yhrPkVk-D8F6w",
+    "subfolder": "yerel"
+  },
+  {
+    "type": "channel",
+    "slug": "kemal-sunal-filmleri",
+    "id": "UCE1XdVHzOdMnUsUMatIzjag",
+    "subfolder": "film"
+  },
+  {
+    "type": "channel",
+    "slug": "gulsah-film",
+    "id": "UCoIUysIrvGxoDw-GkdOGjRw",
+    "subfolder": "film"
+  },
+  {
+    "type": "channel",
+    "slug": "koag",
+    "id": "UCBwgygfGyUx6QRyDDn2tmkw",
+    "subfolder": "dizi"
+  },
+  {
+    "type": "channel",
+    "slug": "kismetse-olur",
+    "id": "UCW0OoKDNMH7b6HcWINTqqzA",
+    "subfolder": "dizi"
+  },
+  {
+    "type": "channel",
+    "slug": "kizilcik-serbeti",
+    "id": "UCRfLDCtkSwmTdwHrbmC78Xg",
+    "subfolder": "dizi"
+  },
+  {
+    "type": "channel",
+    "slug": "kral-sakir",
+    "id": "UCtQvrl_0E7ozHb_c8Fy4oWA",
+    "subfolder": "cocuk"
+  },
+  {
+    "type": "channel",
+    "slug": "krttv",
+    "id": "UCVKWwHoLwUMMa80cu_1uapA",
+    "subfolder": "haber"
+  },
+  {
+    "type": "channel",
+    "slug": "kudus-fatihi",
+    "id": "UCL7F2fg1M5X8i2-b25f9S4A",
+    "subfolder": "dizi"
+  },
+  {
+    "type": "channel",
+    "slug": "kvpusu",
+    "id": "UCz1UfNp9VFp9R1HEFn5PY5A",
+    "subfolder": "dizi"
+  },
+  {
+    "type": "channel",
+    "slug": "kurtlar-vadisi",
+    "id": "UCABzirZ6FyebIf8YSptKMwQ",
+    "subfolder": "dizi"
+  },
+  {
+    "type": "channel",
+    "slug": "leyla-ile-mecnun",
+    "id": "UCmODRwQLSOr5GEG77Uf_zpQ",
+    "subfolder": "dizi"
+  },
+  {
+    "type": "channel",
+    "slug": "lider-haber",
+    "id": "UCgH3Vo5DVMsrbDSUoSecm0Q",
+    "subfolder": "haber"
+  },
+  {
+    "type": "channel",
+    "slug": "mehmed",
+    "id": "UC9KLY6Eftv__Ml3EQVbVasA",
+    "subfolder": "dizi"
+  },
+  {
+    "type": "channel",
+    "slug": "milli-piyango-tv",
+    "id": "UCZ9GezBqs_pV63UTrylkciw",
+    "subfolder": "diger"
+  },
+  {
+    "type": "channel",
+    "slug": "mpl-tv",
+    "id": "UCTr00Butm_gEZmbUz_KI9gg",
+    "subfolder": "dini"
+  },
+  {
+    "type": "channel",
+    "slug": "my-kosem",
+    "id": "UCHXdylbsyDVN4UO2Fv8CgmA",
+    "subfolder": "dizi"
+  },
+  {
+    "type": "channel",
+    "slug": "gumball",
+    "id": "UCEjjDxRBjrbZ65gABYBfROQ",
+    "subfolder": "cocuk"
+  },
+  {
+    "type": "channel",
+    "slug": "muhtesem-yuzyil",
+    "id": "UCkRY4J8G__K8SEWZRLbke-Q",
+    "subfolder": "dizi"
+  },
+  {
+    "type": "channel",
+    "slug": "mutlu-cocuk",
+    "id": "UC8Y11RI7jyTEGjFF3_ULefA",
+    "subfolder": "cocuk"
+  },
+  {
+    "type": "channel",
+    "slug": "niloya",
+    "id": "UCKFIi1uWM9BCMb7O_GyvBsQ",
+    "subfolder": "cocuk"
+  },
+  {
+    "type": "channel",
+    "slug": "nil-rtv",
+    "id": "UCILCXTQPze_XYBMYtWCIimQ",
+    "subfolder": "yerel"
+  },
+  {
+    "type": "channel",
+    "slug": "ntv",
+    "id": "UC9TDTjbOjFB9jADmPhSAPsw",
+    "subfolder": "haber"
+  },
+  {
+    "type": "channel",
+    "slug": "nur-tv",
+    "id": "UCW9SRQR959QnMXEWDKNYHeg",
+    "subfolder": "dini"
+  },
+  {
+    "type": "channel",
+    "slug": "peppa-pig",
+    "id": "UCG3xAc49khedMKudeWwWxqg",
+    "subfolder": "cocuk"
+  },
+  {
+    "type": "channel",
+    "slug": "pijamaskeliler",
+    "id": "UC-27-zuSttD6y5ODB7RJRdQ",
+    "subfolder": "cocuk"
+  },
+  {
+    "type": "channel",
+    "slug": "sakarya-firat",
+    "id": "UCJbc3MgMFKqsCwTdrjWvVzQ",
+    "subfolder": "dizi"
+  },
+  {
+    "type": "channel",
+    "slug": "seksenler",
+    "id": "UCYRPB4TbD2RYHlIQdLgEeYA",
+    "subfolder": "dizi"
+  },
+  {
+    "type": "channel",
+    "slug": "sihirli-annem",
+    "id": "UC8rnNIpGh8n6ZpWVqOBaKUQ",
+    "subfolder": "dizi"
+  },
+  {
+    "type": "channel",
+    "slug": "korku-filmleri",
+    "id": "UCsbpTjR1Vh0L3gvBg9d0Dbg",
+    "subfolder": "film"
+  },
+  {
+    "type": "channel",
+    "slug": "sozcu-tv",
+    "id": "UCOulx_rep5O4i9y6AyDqVvw",
+    "subfolder": "haber"
+  },
+  {
+    "type": "channel",
+    "slug": "tay-tv",
+    "id": "UCjkRA7KEdp7PDKDUs396XHg",
+    "subfolder": "spor"
+  },
+  {
+    "type": "channel",
+    "slug": "telenews-tv",
+    "id": "UC5UAlie8kvZPDfHoT0WpHxQ",
+    "subfolder": "yerel"
+  },
+  {
+    "type": "channel",
+    "slug": "tgrt-belgesel",
+    "id": "UCkQV7uH1Otv47CZz6tD3jGQ",
+    "subfolder": "diger"
+  },
+  {
+    "type": "channel",
+    "slug": "tgrt-haber",
+    "id": "UCzgrZ-CndOoylh2_e72nSBQ",
+    "subfolder": "haber"
+  },
+  {
+    "type": "channel",
+    "slug": "transformers",
+    "id": "UCIA3D9AIv1U3HovkShdnoyg",
+    "subfolder": "cocuk"
+  },
+  {
+    "type": "channel",
+    "slug": "rafadan-tayfa",
+    "id": "UCrFf5dtMe6M1XJHqbKJ4X6Q",
+    "subfolder": "cocuk"
+  },
+  {
+    "type": "channel",
+    "slug": "trthaber",
+    "id": "UCBgTP2LOFVPmq15W-RH-WXA",
+    "subfolder": "haber"
+  },
+  {
+    "type": "channel",
+    "slug": "turk-filmleri",
+    "id": "UCmw7e_6j2TSWCKeaZALjyuA",
+    "subfolder": "film"
+  },
+  {
+    "type": "channel",
+    "slug": "tv100",
+    "id": "UCndsdUW_oPLqpQJY9J8oIRg",
+    "subfolder": "haber"
+  },
+  {
+    "type": "channel",
+    "slug": "benguturk",
+    "id": "UChNgvcVZ_ggDdZ0zCcuuzFw",
+    "subfolder": "haber"
+  },
+  {
+    "type": "channel",
+    "slug": "toprak-tv",
+    "id": "UCY5IqO_-nI9tQlYE01tU70w",
+    "subfolder": "diger"
+  },
+  {
+    "type": "channel",
+    "slug": "tvnet",
+    "id": "UC8rh34IlJTN0lDZlTwzWzjg",
+    "subfolder": "haber"
+  },
+  {
+    "type": "channel",
+    "slug": "ulke-tv",
+    "id": "UCi65FGbYYj-OzJm2luB_fNQ",
+    "subfolder": "haber"
+  },
+  {
+    "type": "channel",
+    "slug": "ulusal-kanal",
+    "id": "UC6T0L26KS1NHMPbTwI1L4Eg",
+    "subfolder": "haber"
+  },
+  {
+    "type": "channel",
+    "slug": "yalan-dunya",
+    "id": "UCN2Q-lSzQa7RjrCxQZ8DzbA",
+    "subfolder": "dizi"
+  },
+  {
+    "type": "channel",
+    "slug": "yaprak-dokumu",
+    "id": "UCi-nK74pBX9Ou66z1j7KYPQ",
+    "subfolder": "dizi"
+  },
+  {
+    "type": "channel",
+    "slug": "yedi-numara",
+    "id": "UC0GKelxahF1nHwKyGhfJVYA",
+    "subfolder": "dizi"
+  },
+  {
+    "type": "channel",
+    "slug": "yesil-deniz",
+    "id": "UCPUpDCqAbk0F7_occqwOBTA",
+    "subfolder": "dizi"
+  },
+  {
+    "type": "channel",
+    "slug": "24tv",
+    "id": "UCN7VYCsI4Lx1-J4_BtjoWUA",
+    "subfolder": "haber"
+  },
+  {
+    "type": "channel",
+    "slug": "zkfo",
+    "id": "UCiT-eroqDoA3zct3OkzhEPA",
+    "subfolder": "dizi"
+  },
+  {
+    "type": "channel",
+    "slug": "cghb",
+    "id": "UCJhEfZoLs5P_idxX--yhWOA",
+    "subfolder": "dizi"
+  },
+  {
+    "type": "channel",
+    "slug": "bein-sports-haber",
+    "id": "UCPe9vNjHF1kEExT5kHwc7aw",
+    "subfolder": "spor"
+  },
+  {
+    "type": "channel",
+    "slug": "film-atolyesi",
+    "id": "UCulg-mlXf314L1pemPqCVng",
+    "subfolder": "film"
+  },
+  {
+    "type": "channel",
+    "slug": "kucuk-kamyon-leo",
+    "id": "UCovav2A4vB5HWORzgB7YC_Q",
+    "subfolder": "cocuk"
+  },
+  {
+    "type": "video",
+    "slug": "cicek-taksi",
+    "id": "5CMiYHTZX8o",
+    "subfolder": "dizi"
+  },
+  {
+    "type": "video",
+    "slug": "tjk-tv",
+    "id": "g89RQMJtK6E",
+    "subfolder": "spor"
+  }
+]
