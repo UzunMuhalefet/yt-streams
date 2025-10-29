@@ -9,9 +9,10 @@ import os
 import sys
 import argparse
 import time
+import re
 import requests
 from pathlib import Path
-from urllib.parse import urlencode
+from urllib.parse import urlencode, urlparse
 
 # Configuration
 ENDPOINT = os.environ.get('ENDPOINT', 'https://your-endpoint.com')
@@ -117,6 +118,30 @@ def fetch_stream_url(stream_config):
             print(f"  → Final URL: {response.url}")
         
         response.raise_for_status()
+        
+        # Check for JavaScript challenge
+        redirect_url = solve_js_challenge(response, slug)
+        if redirect_url:
+            print(f"  → Following extracted redirect URL...")
+            
+            # Make second request to the actual m3u8 URL
+            response2 = session.get(
+                redirect_url,
+                timeout=TIMEOUT,
+                allow_redirects=True,
+                headers={
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                    'Accept': '*/*',
+                    'Connection': 'keep-alive',
+                    'Referer': url
+                }
+            )
+            
+            print(f"  → Second request status: {response2.status_code}")
+            print(f"  → Content Length: {len(response2.content)} bytes")
+            
+            response2.raise_for_status()
+            response = response2  # Use the second response
         
         # Check if content looks like m3u8
         content_preview = response.text[:200] if len(response.text) > 200 else response.text
@@ -232,6 +257,44 @@ def delete_old_file(stream_config):
         return False
     
     return False
+
+
+def extract_redirect_url(html_content):
+    """Extract redirect URL from JavaScript challenge page"""
+    # Look for location.href pattern
+    redirect_pattern = r'location\.href\s*=\s*["\']([^"\']+)["\']'
+    match = re.search(redirect_pattern, html_content)
+    
+    if match:
+        return match.group(1)
+    
+    return None
+
+
+def solve_js_challenge(response, slug):
+    """Detect and solve JavaScript challenge"""
+    content = response.text
+    
+    # Check if this is a JS challenge page
+    if '<script type="text/javascript" src="/aes.js"' in content or 'slowAES.decrypt' in content:
+        print(f"  ⚠ JavaScript challenge detected")
+        
+        # Extract the redirect URL from the challenge
+        redirect_url = extract_redirect_url(content)
+        
+        if redirect_url:
+            print(f"  → Extracted redirect URL: {redirect_url}")
+            return redirect_url
+        else:
+            print(f"  ✗ Could not extract redirect URL from challenge")
+            # Try to extract cookie value for debugging
+            cookie_pattern = r'document\.cookie\s*=\s*"([^"]+)"'
+            cookie_match = re.search(cookie_pattern, content)
+            if cookie_match:
+                print(f"  → Cookie pattern found: {cookie_match.group(1)[:50]}...")
+            return None
+    
+    return None
 
 
 def save_stream(stream_config, m3u8_content):
