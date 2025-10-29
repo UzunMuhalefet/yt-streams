@@ -404,6 +404,12 @@ Examples:
         help='Enable verbose debug output'
     )
     
+    parser.add_argument(
+        '--fail-on-error',
+        action='store_true',
+        help='Exit with error code if any streams fail (default: exit successfully)'
+    )
+    
     return parser.parse_args()
 
 
@@ -480,9 +486,15 @@ def main():
     
     print("=" * 50)
     
-    # Exit with error if any failed
+    # Handle exit code based on --fail-on-error flag
     if total_fail > 0:
-        sys.exit(1)
+        if args.fail_on_error:
+            print(f"\n✗ Exiting with error code due to {total_fail} failed stream(s)")
+            sys.exit(1)
+        else:
+            print(f"\n⚠ Note: {total_fail} stream(s) failed but {total_success} were successful")
+            print("📝 Successful streams will be committed to repository")
+            print("💡 Use --fail-on-error to exit with error code on failures")
 
 
 if __name__ == "__main__":
