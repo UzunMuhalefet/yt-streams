@@ -8,6 +8,7 @@ import json
 import os
 import sys
 import argparse
+import time
 import requests
 from pathlib import Path
 from urllib.parse import urlencode
@@ -16,6 +17,19 @@ from urllib.parse import urlencode
 ENDPOINT = os.environ.get('ENDPOINT', 'https://your-endpoint.com')
 FOLDER_NAME = os.environ.get('FOLDER_NAME', 'streams')
 TIMEOUT = 30
+MAX_RETRIES = 3
+RETRY_DELAY = 2  # seconds
+
+# Create a session for connection pooling
+session = requests.Session()
+# Configure adapter with retry settings
+adapter = requests.adapters.HTTPAdapter(
+    pool_connections=10,
+    pool_maxsize=20,
+    max_retries=0  # We handle retries manually
+)
+session.mount('http://', adapter)
+session.mount('https://', adapter)
 
 
 def load_config(config_path):
@@ -31,6 +45,29 @@ def load_config(config_path):
     except json.JSONDecodeError as e:
         print(f"✗ Invalid JSON in config file: {e}")
         sys.exit(1)
+
+
+def fetch_stream_url_with_retry(stream_config):
+    """Fetch stream URL with retry logic"""
+    slug = stream_config['slug']
+    last_error_type = None
+    
+    for attempt in range(1, MAX_RETRIES + 1):
+        if attempt > 1:
+            delay = RETRY_DELAY * (2 ** (attempt - 2))  # Exponential backoff
+            print(f"  → Retry {attempt}/{MAX_RETRIES} after {delay}s delay...")
+            time.sleep(delay)
+        
+        result, error_type = fetch_stream_url(stream_config)
+        if result is not None:
+            return result, None
+        
+        last_error_type = error_type
+        if attempt < MAX_RETRIES:
+            print(f"  → Attempt {attempt} failed, will retry...")
+    
+    print(f"  ✗ All {MAX_RETRIES} attempts failed for {slug}")
+    return None, last_error_type
 
 
 def fetch_stream_url(stream_config):
@@ -55,15 +92,75 @@ def fetch_stream_url(stream_config):
     
     try:
         # Follow redirects and get final m3u8 URL
-        response = requests.get(url, timeout=TIMEOUT, allow_redirects=True)
+        print(f"  → Sending GET request (timeout={TIMEOUT}s)...")
+        response = session.get(
+            url, 
+            timeout=TIMEOUT, 
+            allow_redirects=True,
+            headers={
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                'Accept': '*/*',
+                'Connection': 'keep-alive'
+            }
+        )
+        
+        # Log response details
+        print(f"  → Status Code: {response.status_code}")
+        print(f"  → Content Type: {response.headers.get('Content-Type', 'N/A')}")
+        print(f"  → Content Length: {len(response.content)} bytes")
+        
+        # Log redirect chain if any
+        if response.history:
+            print(f"  → Redirects: {len(response.history)} redirect(s)")
+            for i, hist_resp in enumerate(response.history, 1):
+                print(f"    {i}. {hist_resp.status_code} → {hist_resp.url}")
+            print(f"  → Final URL: {response.url}")
+        
         response.raise_for_status()
         
-        # The response should be the m3u8 content
-        return response.text
+        # Check if content looks like m3u8
+        content_preview = response.text[:200] if len(response.text) > 200 else response.text
+        if '#EXTM3U' in content_preview:
+            print(f"  ✓ Valid m3u8 content detected")
+        else:
+            print(f"  ⚠ Warning: Content doesn't start with #EXTM3U")
+            print(f"  → Content preview: {content_preview[:100]}...")
         
+        # The response should be the m3u8 content
+        return response.text, None
+        
+    except requests.exceptions.Timeout as e:
+        error_type = 'Timeout'
+        print(f"✗ Timeout error for {slug}: Request exceeded {TIMEOUT}s")
+        print(f"  → Error details: {e}")
+        return None, error_type
+    except requests.exceptions.ConnectionError as e:
+        error_type = 'ConnectionError'
+        print(f"✗ Connection error for {slug}: {type(e).__name__}")
+        print(f"  → Error details: {e}")
+        print(f"  → URL attempted: {url}")
+        return None, error_type
+    except requests.exceptions.HTTPError as e:
+        error_type = f'HTTPError-{e.response.status_code}'
+        print(f"✗ HTTP error for {slug}: {e.response.status_code}")
+        print(f"  → Response: {e.response.text[:200] if e.response.text else 'No content'}")
+        return None, error_type
     except requests.exceptions.RequestException as e:
-        print(f"✗ Error fetching stream for {slug}: {e}")
-        return None
+        error_type = type(e).__name__
+        print(f"✗ Request error for {slug}: {type(e).__name__}")
+        print(f"  → Error details: {e}")
+        print(f"  → Error type: {type(e)}")
+        if hasattr(e, 'response') and e.response is not None:
+            print(f"  → Response status: {e.response.status_code}")
+            print(f"  → Response headers: {dict(e.response.headers)}")
+        return None, error_type
+    except Exception as e:
+        error_type = type(e).__name__
+        print(f"✗ Unexpected error for {slug}: {type(e).__name__}")
+        print(f"  → Error details: {e}")
+        import traceback
+        print(f"  → Traceback: {traceback.format_exc()}")
+        return None, error_type
 
 
 def reverse_hls_quality(m3u8_content):
@@ -172,6 +269,7 @@ Examples:
   python update_streams.py config.json
   python update_streams.py streams/live.json
   python update_streams.py config1.json config2.json
+  python update_streams.py config.json --retries 5 --timeout 60
         """
     )
     
@@ -193,6 +291,33 @@ Examples:
         help=f'Output folder name (default: {FOLDER_NAME})'
     )
     
+    parser.add_argument(
+        '--timeout',
+        type=int,
+        default=TIMEOUT,
+        help=f'Request timeout in seconds (default: {TIMEOUT})'
+    )
+    
+    parser.add_argument(
+        '--retries',
+        type=int,
+        default=MAX_RETRIES,
+        help=f'Maximum retry attempts (default: {MAX_RETRIES})'
+    )
+    
+    parser.add_argument(
+        '--retry-delay',
+        type=int,
+        default=RETRY_DELAY,
+        help=f'Initial retry delay in seconds (default: {RETRY_DELAY})'
+    )
+    
+    parser.add_argument(
+        '-v', '--verbose',
+        action='store_true',
+        help='Enable verbose debug output'
+    )
+    
     return parser.parse_args()
 
 
@@ -201,9 +326,12 @@ def main():
     args = parse_arguments()
     
     # Update globals with command line arguments
-    global ENDPOINT, FOLDER_NAME
+    global ENDPOINT, FOLDER_NAME, TIMEOUT, MAX_RETRIES, RETRY_DELAY
     ENDPOINT = args.endpoint
     FOLDER_NAME = args.folder
+    TIMEOUT = args.timeout
+    MAX_RETRIES = args.retries
+    RETRY_DELAY = args.retry_delay
     
     print("=" * 50)
     print("YouTube Stream Updater")
@@ -211,10 +339,15 @@ def main():
     print(f"Endpoint: {ENDPOINT}")
     print(f"Output folder: {FOLDER_NAME}")
     print(f"Config files: {', '.join(args.config_files)}")
+    print(f"Timeout: {TIMEOUT}s")
+    print(f"Max retries: {MAX_RETRIES}")
+    print(f"Retry delay: {RETRY_DELAY}s")
+    print(f"Verbose: {args.verbose}")
     print("=" * 50)
     
     total_success = 0
     total_fail = 0
+    error_summary = {}  # Track error types
     
     # Process each config file
     for config_file in args.config_files:
@@ -229,8 +362,8 @@ def main():
             slug = stream.get('slug', 'unknown')
             print(f"\n[{i}/{len(streams)}] Processing: {slug}")
             
-            # Fetch stream URL
-            m3u8_content = fetch_stream_url(stream)
+            # Fetch stream URL with retry
+            m3u8_content, error_type = fetch_stream_url_with_retry(stream)
             
             if m3u8_content:
                 # Save to file
@@ -240,14 +373,25 @@ def main():
                     total_fail += 1
                     # Delete old file on save error
                     delete_old_file(stream)
+                    error_summary['SaveError'] = error_summary.get('SaveError', 0) + 1
             else:
                 total_fail += 1
                 # Delete old file on fetch error
                 delete_old_file(stream)
+                # Track error type
+                if error_type:
+                    error_summary[error_type] = error_summary.get(error_type, 0) + 1
     
     # Summary
     print("\n" + "=" * 50)
     print(f"Complete: {total_success} successful, {total_fail} failed")
+    
+    # Error breakdown
+    if error_summary:
+        print("\nError Breakdown:")
+        for error_type, count in sorted(error_summary.items(), key=lambda x: x[1], reverse=True):
+            print(f"  • {error_type}: {count}")
+    
     print("=" * 50)
     
     # Exit with error if any failed
