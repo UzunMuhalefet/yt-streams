@@ -12,7 +12,7 @@ on:
       - main
     paths:
       - 'turkish.json'
-      - 'update_streams.py'
+      - 'main.py'
       - '.github/workflows/turkish.yml'
 
 env:
@@ -44,7 +44,7 @@ jobs:
         env:
           ENDPOINT: ${{ secrets.ENDPOINT }}
         run: |
-          python update_streams.py ${{ env.CONFIG_FILE }} --folder ${{ env.OUTPUT_FOLDER }}
+          python main.py ${{ env.CONFIG_FILE }} --folder ${{ env.OUTPUT_FOLDER }}
       
       - name: Check for changes
         id: git-check
