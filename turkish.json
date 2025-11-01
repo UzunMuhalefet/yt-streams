@@ -740,5 +740,40 @@
     "slug": "aksiyon-filmleri",
     "id": "UC0LzwfdVoZSQDtauDjJS8_A",
     "subfolder": "film"
+  },
+  {
+    "type": "channel",
+    "name": "Türkiye Gazetesi",
+    "slug": "turkiye-gazetesi",
+    "id": "UCJET1tOY_ogUK-J9wqVVJYg",
+    "subfolder": "haber"
+  },
+  {
+    "type": "channel",
+    "name": "Huzur Pınarı",
+    "slug": "huzur-pinari",
+    "id": "UC4dIaCkMaq1vXskR0q2V-dw",
+    "subfolder": "dini"
+  },
+  {
+    "type": "channel",
+    "name": "Business Channel Türk",
+    "slug": "business-channel-turk",
+    "id": "UCLPc5pYOl2clEkCA82Sfb0Q",
+    "subfolder": "haber"
+  },
+  {
+    "type": "channel",
+    "name": "Hür Asya TV",
+    "slug": "hur-asya-tv",
+    "id": "UCcqzDkOHROItrMMcC9wva3Q",
+    "subfolder": "dini"
+  },
+  {
+    "type": "channel",
+    "name": "NatureTime Türkçe",
+    "slug": "naturetime",
+    "id": "UCRMv2kgJPTerIW96lkfXdAA",
+    "subfolder": "diger"
   }
 ]
