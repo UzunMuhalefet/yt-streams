@@ -775,5 +775,61 @@
     "slug": "naturetime",
     "id": "UCRMv2kgJPTerIW96lkfXdAA",
     "subfolder": "diger"
+  },
+  {
+    "type": "channel",
+    "name": "Kukuli TV",
+    "slug": "kukuli-tv",
+    "id": "UCF5IUvgXe_3sHBuKpEz7Btw",
+    "subfolder": "cocuk"
+  },
+  {
+    "type": "channel",
+    "name": "Tele Mini",
+    "slug": "tele-mini",
+    "id": "UCiZyPXSdQB4fCqcCeYHsO_w",
+    "subfolder": "cocuk"
+  },
+  {
+    "type": "channel",
+    "name": "Tombik Panda",
+    "slug": "tombik-panda",
+    "id": "UCP97TxPy8EKWjEnfAc0JLEA",
+    "subfolder": "cocuk"
+  },
+  {
+    "type": "channel",
+    "name": "Mini Bebe",
+    "slug": "mini-bebe",
+    "id": "UCWQkR0GxF5oWvryohTiEWAg",
+    "subfolder": "cocuk"
+  },
+  {
+    "type": "channel",
+    "name": "Bibercik TV",
+    "slug": "bibercik-tv",
+    "id": "UC1obuHkT6qut2gle12RMxwQ",
+    "subfolder": "cocuk"
+  },
+  {
+    "type": "channel",
+    "name": "Bob The Train",
+    "slug": "bob-the-train",
+    "id": "UCO91DZ2BHR8Jsa3wN90rv-Q",
+    "subfolder": "cocuk"
+  },
+  {
+    "type": "channel",
+    "name": "Bebe Dino",
+    "slug": "bebe-dino",
+    "id": "UCENwcX8GVEPdeLE_D_RU8Ug",
+    "subfolder": "cocuk"
+  },
+  {
+    "type": "channel",
+    "name": "Çocuklar Duymasın",
+    "slug": "cocuklar-duymasin",
+    "id": "UCtjNs0q_cz-RdHy-HW2q8Cw",
+    "subfolder": "dizi"
   }
 ]
