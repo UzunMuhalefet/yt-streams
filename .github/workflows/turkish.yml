@@ -38,13 +38,14 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
+          pip install git+https://github.com/zinzied/cloudscraper.git
           pip install -r requirements.txt
       
       - name: Update streams
         env:
           ENDPOINT: ${{ secrets.ENDPOINT }}
         run: |
-          python main.py ${{ env.CONFIG_FILE }} --folder ${{ env.OUTPUT_FOLDER }} --endpoint $${{ env.ENDPOINT }}
+          python main.py ${{ env.CONFIG_FILE }} --folder ${{ env.OUTPUT_FOLDER }}
       
       - name: List output files
         run: |
