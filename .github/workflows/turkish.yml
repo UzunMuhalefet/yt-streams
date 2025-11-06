@@ -44,7 +44,7 @@ jobs:
         env:
           ENDPOINT: ${{ secrets.ENDPOINT }}
         run: |
-          python main.py ${{ env.CONFIG_FILE }} --folder ${{ env.OUTPUT_FOLDER }}
+          python main.py ${{ env.CONFIG_FILE }} --folder ${{ env.OUTPUT_FOLDER }} --endpoint $${{ env.ENDPOINT }}
       
       - name: List output files
         run: |
