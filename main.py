@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
-YouTube Stream Updater
+YouTube Stream Updater - Improved Version
 Fetches YouTube stream URLs and updates m3u8 playlists
+Enhanced with better JS challenge handling and error recovery
 """
 
 import json
@@ -10,16 +11,25 @@ import sys
 import argparse
 import time
 import re
+from pathlib import Path
+from urllib.parse import urlencode, urlparse, parse_qs
+
+# Try to import cloudscraper first (best option)
 try:
     import cloudscraper
     CLOUDSCRAPER_AVAILABLE = True
 except ImportError:
-    import requests
     CLOUDSCRAPER_AVAILABLE = False
-    print("⚠ Warning: cloudscraper not installed. Install with: pip install cloudscraper")
-    print("⚠ Falling back to basic requests (JS challenges may not work)")
-from pathlib import Path
-from urllib.parse import urlencode, urlparse
+
+# Try to import curl_cffi (alternative for tough challenges)
+try:
+    from curl_cffi import requests as curl_requests
+    CURL_CFFI_AVAILABLE = True
+except ImportError:
+    CURL_CFFI_AVAILABLE = False
+
+# Fallback to standard requests
+import requests
 
 # Configuration
 ENDPOINT = os.environ.get('ENDPOINT', 'https://your-endpoint.com')
@@ -27,31 +37,45 @@ FOLDER_NAME = os.environ.get('FOLDER_NAME', 'streams')
 TIMEOUT = 30
 MAX_RETRIES = 3
 RETRY_DELAY = 2  # seconds
+VERBOSE = False
 
-# Create a session for connection pooling
-if CLOUDSCRAPER_AVAILABLE:
-    # Use cloudscraper to handle JavaScript challenges
-    scraper = cloudscraper.create_scraper(
-        browser={
-            'browser': 'chrome',
-            'platform': 'windows',
-            'mobile': False
-        },
-        delay=10
-    )
-    session = scraper
-    print("✓ Using cloudscraper for JavaScript challenge bypass")
-else:
-    # Fallback to regular requests
-    session = requests.Session()
-    adapter = requests.adapters.HTTPAdapter(
-        pool_connections=10,
-        pool_maxsize=20,
-        max_retries=0
-    )
-    session.mount('http://', adapter)
-    session.mount('https://', adapter)
-    print("⚠ Using basic requests (limited challenge support)")
+def create_session():
+    """Create the best available HTTP session"""
+    if CLOUDSCRAPER_AVAILABLE:
+        print("✓ Using cloudscraper for JavaScript challenge bypass")
+        scraper = cloudscraper.create_scraper(
+            browser={
+                'browser': 'chrome',
+                'platform': 'windows',
+                'mobile': False
+            },
+            delay=10,
+            # Add more aggressive challenge solving
+            captcha={
+                'provider': 'return_response'
+            }
+        )
+        return scraper, 'cloudscraper'
+    elif CURL_CFFI_AVAILABLE:
+        print("✓ Using curl_cffi for advanced challenge bypass")
+        # curl_cffi uses a different interface
+        return None, 'curl_cffi'
+    else:
+        print("⚠ Using basic requests (limited challenge support)")
+        print("⚠ Install cloudscraper: pip install cloudscraper")
+        print("⚠ Or install curl_cffi: pip install curl_cffi")
+        session = requests.Session()
+        adapter = requests.adapters.HTTPAdapter(
+            pool_connections=10,
+            pool_maxsize=20,
+            max_retries=0
+        )
+        session.mount('http://', adapter)
+        session.mount('https://', adapter)
+        return session, 'requests'
+
+# Initialize session
+session, session_type = create_session()
 
 
 def load_config(config_path):
@@ -69,6 +93,146 @@ def load_config(config_path):
         sys.exit(1)
 
 
+def extract_redirect_url(html_content):
+    """Extract redirect URL from JavaScript challenge page"""
+    # Pattern 1: location.href = "url"
+    patterns = [
+        r'location\.href\s*=\s*["\']([^"\']+)["\']',
+        r'window\.location\s*=\s*["\']([^"\']+)["\']',
+        r'window\.location\.href\s*=\s*["\']([^"\']+)["\']',
+        # Pattern 2: location.replace("url")
+        r'location\.replace\s*\(\s*["\']([^"\']+)["\']\s*\)',
+        # Pattern 3: meta refresh
+        r'<meta[^>]+http-equiv=["\']refresh["\'][^>]+content=["\'][^;]+;\s*url=([^"\']+)["\']',
+    ]
+    
+    for pattern in patterns:
+        match = re.search(pattern, html_content, re.IGNORECASE)
+        if match:
+            return match.group(1)
+    
+    return None
+
+
+def extract_challenge_cookies(html_content):
+    """Extract cookies set by JavaScript challenge"""
+    cookies = {}
+    
+    # Look for document.cookie patterns
+    cookie_patterns = [
+        r'document\.cookie\s*=\s*["\']([^"\']+)["\']',
+        r'document\.cookie\s*=\s*([^;]+);',
+    ]
+    
+    for pattern in cookie_patterns:
+        matches = re.finditer(pattern, html_content)
+        for match in matches:
+            cookie_str = match.group(1)
+            # Parse cookie string (name=value format)
+            if '=' in cookie_str:
+                parts = cookie_str.split('=', 1)
+                if len(parts) == 2:
+                    cookies[parts[0].strip()] = parts[1].strip()
+    
+    return cookies
+
+
+def solve_js_challenge_advanced(response, slug, base_url):
+    """Detect and solve JavaScript challenge with multiple strategies"""
+    content = response.text
+    
+    # Check if this is a JS challenge page
+    challenge_indicators = [
+        '<script type="text/javascript" src="/aes.js"',
+        'slowAES.decrypt',
+        'Checking your browser',
+        'Just a moment',
+        'Please wait',
+        'Verifying you are human'
+    ]
+    
+    is_challenge = any(indicator in content for indicator in challenge_indicators)
+    
+    if is_challenge:
+        print(f"  ⚠ JavaScript/Anti-bot challenge detected")
+        
+        # Strategy 1: Extract redirect URL
+        redirect_url = extract_redirect_url(content)
+        if redirect_url:
+            print(f"  → Strategy 1: Found redirect URL")
+            # Handle relative URLs
+            if redirect_url.startswith('/'):
+                parsed = urlparse(base_url)
+                redirect_url = f"{parsed.scheme}://{parsed.netloc}{redirect_url}"
+            elif not redirect_url.startswith('http'):
+                redirect_url = f"{base_url.rstrip('/')}/{redirect_url}"
+            
+            return {
+                'type': 'redirect',
+                'url': redirect_url,
+                'cookies': extract_challenge_cookies(content)
+            }
+        
+        # Strategy 2: Extract cookies and retry original URL
+        cookies = extract_challenge_cookies(content)
+        if cookies:
+            print(f"  → Strategy 2: Found {len(cookies)} challenge cookie(s)")
+            return {
+                'type': 'cookies',
+                'url': base_url,
+                'cookies': cookies
+            }
+        
+        # Strategy 3: Look for hidden form submission
+        form_match = re.search(r'<form[^>]+action=["\']([^"\']+)["\']', content, re.IGNORECASE)
+        if form_match:
+            form_action = form_match.group(1)
+            if form_action.startswith('/'):
+                parsed = urlparse(base_url)
+                form_action = f"{parsed.scheme}://{parsed.netloc}{form_action}"
+            print(f"  → Strategy 3: Found form action")
+            return {
+                'type': 'form',
+                'url': form_action,
+                'cookies': {}
+            }
+        
+        print(f"  ✗ Could not extract challenge solution")
+        if VERBOSE:
+            print(f"  → Content preview:\n{content[:500]}")
+    
+    return None
+
+
+def make_request(url, timeout, headers, cookies=None, referer=None):
+    """Make HTTP request using the best available method"""
+    final_headers = headers.copy()
+    if referer:
+        final_headers['Referer'] = referer
+    
+    if session_type == 'curl_cffi':
+        # Use curl_cffi for tough challenges
+        response = curl_requests.get(
+            url,
+            timeout=timeout,
+            headers=final_headers,
+            cookies=cookies,
+            impersonate="chrome120",
+            allow_redirects=True
+        )
+        return response
+    else:
+        # Use cloudscraper or requests
+        response = session.get(
+            url,
+            timeout=timeout,
+            headers=final_headers,
+            cookies=cookies,
+            allow_redirects=True
+        )
+        return response
+
+
 def fetch_stream_url_with_retry(stream_config):
     """Fetch stream URL with retry logic"""
     slug = stream_config['slug']
@@ -80,7 +244,7 @@ def fetch_stream_url_with_retry(stream_config):
             print(f"  → Retry {attempt}/{MAX_RETRIES} after {delay}s delay...")
             time.sleep(delay)
         
-        result, error_type = fetch_stream_url(stream_config)
+        result, error_type = fetch_stream_url(stream_config, attempt)
         if result is not None:
             return result, None
         
@@ -92,7 +256,7 @@ def fetch_stream_url_with_retry(stream_config):
     return None, last_error_type
 
 
-def fetch_stream_url(stream_config):
+def fetch_stream_url(stream_config, attempt_num=1):
     """Fetch the YouTube stream m3u8 URL"""
     stream_type = stream_config.get('type', 'channel')
     stream_id = stream_config['id']
@@ -105,7 +269,7 @@ def fetch_stream_url(stream_config):
         query_param = 'c'
     else:
         print(f"✗ Unknown type '{stream_type}' for {slug}")
-        return None
+        return None, 'InvalidType'
     
     # Build request URL
     url = f"{ENDPOINT}/yt.php?{query_param}={stream_id}"
@@ -113,20 +277,20 @@ def fetch_stream_url(stream_config):
     print(f"  Fetching: {url}")
     
     try:
-        # Follow redirects and get final m3u8 URL
-        print(f"  → Sending GET request (timeout={TIMEOUT}s)...")
+        # Prepare headers
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': '*/*',
+            'Accept-Language': 'en-US,en;q=0.9',
+            'Accept-Encoding': 'gzip, deflate, br',
+            'Connection': 'keep-alive',
+            'Upgrade-Insecure-Requests': '1'
+        }
         
-        # Cloudscraper handles JS challenges automatically
-        response = session.get(
-            url, 
-            timeout=TIMEOUT, 
-            allow_redirects=True,
-            headers={
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                'Accept': '*/*',
-                'Connection': 'keep-alive'
-            }
-        )
+        print(f"  → Sending GET request (timeout={TIMEOUT}s, attempt={attempt_num})...")
+        
+        # Make initial request
+        response = make_request(url, TIMEOUT, headers)
         
         # Log response details
         print(f"  → Status Code: {response.status_code}")
@@ -134,7 +298,7 @@ def fetch_stream_url(stream_config):
         print(f"  → Content Length: {len(response.content)} bytes")
         
         # Log redirect chain if any
-        if response.history:
+        if hasattr(response, 'history') and response.history:
             print(f"  → Redirects: {len(response.history)} redirect(s)")
             for i, hist_resp in enumerate(response.history, 1):
                 print(f"    {i}. {hist_resp.status_code} → {hist_resp.url}")
@@ -142,73 +306,100 @@ def fetch_stream_url(stream_config):
         
         response.raise_for_status()
         
-        # Check if we still got a challenge page (shouldn't happen with cloudscraper)
-        if not CLOUDSCRAPER_AVAILABLE:
-            redirect_url = solve_js_challenge(response, slug)
-            if redirect_url:
-                print(f"  → Manually following extracted redirect URL...")
-                
-                # Make second request to the actual m3u8 URL
-                response2 = session.get(
-                    redirect_url,
-                    timeout=TIMEOUT,
-                    allow_redirects=True,
-                    headers={
-                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-                        'Accept': '*/*',
-                        'Connection': 'keep-alive',
-                        'Referer': url
-                    }
-                )
-                
-                print(f"  → Second request status: {response2.status_code}")
-                print(f"  → Content Length: {len(response2.content)} bytes")
-                
-                response2.raise_for_status()
-                response = response2  # Use the second response
+        # Check if we got a challenge page
+        challenge_solution = solve_js_challenge_advanced(response, slug, url)
+        
+        if challenge_solution:
+            solution_type = challenge_solution['type']
+            target_url = challenge_solution['url']
+            challenge_cookies = challenge_solution['cookies']
+            
+            print(f"  → Attempting to solve challenge (type: {solution_type})...")
+            
+            # Wait a bit before following (simulate human behavior)
+            time.sleep(2)
+            
+            # Merge any cookies from the challenge
+            request_cookies = dict(response.cookies)
+            if challenge_cookies:
+                request_cookies.update(challenge_cookies)
+            
+            # Make follow-up request
+            print(f"  → Following challenge solution to: {target_url}")
+            response2 = make_request(
+                target_url,
+                TIMEOUT,
+                headers,
+                cookies=request_cookies if request_cookies else None,
+                referer=url
+            )
+            
+            print(f"  → Second request status: {response2.status_code}")
+            print(f"  → Content Length: {len(response2.content)} bytes")
+            print(f"  → Content Type: {response2.headers.get('Content-Type', 'N/A')}")
+            
+            response2.raise_for_status()
+            
+            # Check if we still have a challenge
+            second_challenge = solve_js_challenge_advanced(response2, slug, target_url)
+            if second_challenge:
+                print(f"  ✗ Still facing challenge after solution attempt")
+                return None, 'ChallengeFailed'
+            
+            response = response2  # Use the second response
         
         # Check if content looks like m3u8
         content_preview = response.text[:200] if len(response.text) > 200 else response.text
+        
         if '#EXTM3U' in content_preview:
             print(f"  ✓ Valid m3u8 content detected")
-        elif '<html' in content_preview.lower():
+            return response.text, None
+        elif '<html' in content_preview.lower() or '<!doctype' in content_preview.lower():
             print(f"  ✗ Error: Received HTML instead of m3u8")
-            print(f"  → Content preview: {content_preview[:150]}...")
+            if VERBOSE:
+                print(f"  → Content preview: {content_preview[:300]}...")
+            
+            # Check if it's still a challenge page
+            if any(indicator in response.text for indicator in ['Checking your browser', 'Just a moment', 'cloudflare']):
+                return None, 'ChallengeNotSolved'
+            
             return None, 'HTMLResponse'
         else:
             print(f"  ⚠ Warning: Content doesn't start with #EXTM3U")
-            print(f"  → Content preview: {content_preview[:100]}...")
+            if VERBOSE:
+                print(f"  → Content preview: {content_preview[:150]}...")
+            
+            # If content looks like it might be m3u8 without the header, try to use it
+            if '.m3u8' in content_preview or 'EXT-X-' in content_preview:
+                print(f"  ⚠ Content might be valid m3u8 despite missing header")
+                return response.text, None
+            
+            return None, 'InvalidContent'
         
-        # The response should be the m3u8 content
-        return response.text, None
-        
-    except Exception as e:
-        # Handle both cloudscraper and requests exceptions
-        error_module = type(e).__module__
-        
-        if 'timeout' in str(e).lower() or 'timed out' in str(e).lower():
-            error_type = 'Timeout'
-            print(f"✗ Timeout error for {slug}: Request exceeded {TIMEOUT}s")
+    except requests.exceptions.Timeout:
+        error_type = 'Timeout'
+        print(f"  ✗ Timeout error for {slug}: Request exceeded {TIMEOUT}s")
+        return None, error_type
+    except requests.exceptions.ConnectionError as e:
+        error_type = 'ConnectionError'
+        print(f"  ✗ Connection error for {slug}")
+        if VERBOSE:
             print(f"  → Error details: {e}")
-            return None, error_type
-        elif 'connection' in str(e).lower() or 'remote' in str(e).lower():
-            error_type = 'ConnectionError'
-            print(f"✗ Connection error for {slug}: {type(e).__name__}")
-            print(f"  → Error details: {e}")
-            print(f"  → URL attempted: {url}")
-            return None, error_type
-        elif hasattr(e, 'response') and e.response is not None:
-            error_type = f'HTTPError-{e.response.status_code}'
-            print(f"✗ HTTP error for {slug}: {e.response.status_code}")
+        return None, error_type
+    except requests.exceptions.HTTPError as e:
+        error_type = f'HTTPError-{e.response.status_code}'
+        print(f"  ✗ HTTP error for {slug}: {e.response.status_code}")
+        if VERBOSE:
             print(f"  → Response: {e.response.text[:200] if e.response.text else 'No content'}")
-            return None, error_type
-        else:
-            error_type = type(e).__name__
-            print(f"✗ Request error for {slug}: {type(e).__name__}")
-            print(f"  → Error details: {e}")
+        return None, error_type
+    except Exception as e:
+        error_type = type(e).__name__
+        print(f"  ✗ Request error for {slug}: {type(e).__name__}")
+        print(f"  → Error details: {e}")
+        if VERBOSE:
             import traceback
             print(f"  → Traceback: {traceback.format_exc()}")
-            return None, error_type
+        return None, error_type
 
 
 def reverse_hls_quality(m3u8_content):
@@ -282,44 +473,6 @@ def delete_old_file(stream_config):
     return False
 
 
-def extract_redirect_url(html_content):
-    """Extract redirect URL from JavaScript challenge page"""
-    # Look for location.href pattern
-    redirect_pattern = r'location\.href\s*=\s*["\']([^"\']+)["\']'
-    match = re.search(redirect_pattern, html_content)
-    
-    if match:
-        return match.group(1)
-    
-    return None
-
-
-def solve_js_challenge(response, slug):
-    """Detect and solve JavaScript challenge"""
-    content = response.text
-    
-    # Check if this is a JS challenge page
-    if '<script type="text/javascript" src="/aes.js"' in content or 'slowAES.decrypt' in content:
-        print(f"  ⚠ JavaScript challenge detected")
-        
-        # Extract the redirect URL from the challenge
-        redirect_url = extract_redirect_url(content)
-        
-        if redirect_url:
-            print(f"  → Extracted redirect URL: {redirect_url}")
-            return redirect_url
-        else:
-            print(f"  ✗ Could not extract redirect URL from challenge")
-            # Try to extract cookie value for debugging
-            cookie_pattern = r'document\.cookie\s*=\s*"([^"]+)"'
-            cookie_match = re.search(cookie_pattern, content)
-            if cookie_match:
-                print(f"  → Cookie pattern found: {cookie_match.group(1)[:50]}...")
-            return None
-    
-    return None
-
-
 def save_stream(stream_config, m3u8_content):
     """Save m3u8 content to file"""
     slug = stream_config['slug']
@@ -338,10 +491,10 @@ def save_stream(stream_config, m3u8_content):
     try:
         with open(output_file, 'w') as f:
             f.write(reversed_content)
-        print(f"✓ Saved: {output_file}")
+        print(f"  ✓ Saved: {output_file}")
         return True
     except Exception as e:
-        print(f"✗ Error saving {output_file}: {e}")
+        print(f"  ✗ Error saving {output_file}: {e}")
         return False
 
 
@@ -415,6 +568,7 @@ Examples:
 
 def main():
     """Main execution function"""
+    global VERBOSE
     args = parse_arguments()
     
     # Update globals with command line arguments
@@ -424,9 +578,10 @@ def main():
     TIMEOUT = args.timeout
     MAX_RETRIES = args.retries
     RETRY_DELAY = args.retry_delay
+    VERBOSE = args.verbose
     
     print("=" * 50)
-    print("YouTube Stream Updater")
+    print("YouTube Stream Updater (Improved)")
     print("=" * 50)
     print(f"Endpoint: {ENDPOINT}")
     print(f"Output folder: {FOLDER_NAME}")
@@ -434,7 +589,8 @@ def main():
     print(f"Timeout: {TIMEOUT}s")
     print(f"Max retries: {MAX_RETRIES}")
     print(f"Retry delay: {RETRY_DELAY}s")
-    print(f"Verbose: {args.verbose}")
+    print(f"Verbose: {VERBOSE}")
+    print(f"Session type: {session_type}")
     print("=" * 50)
     
     total_success = 0
