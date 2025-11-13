@@ -306,7 +306,7 @@ def fetch_stream_url(stream_config, attempt_num=1):
         return None, 'InvalidType'
     
     # Build request URL
-    url = f"https://yt-stream.uzunmuhalefet.workers.dev/?{query_param}={stream_id}"
+    url = f"{ENDPOINT}/yt.php?{query_param}={stream_id}"
     
     print(f"  Fetching: {url}")
     
