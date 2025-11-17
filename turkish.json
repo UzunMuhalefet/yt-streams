@@ -1034,5 +1034,19 @@
     "slug": "korku-hikayeleri",
     "id": "UCFQh1SOVj6z1aGUd8N2KNaw",
     "subfolder": "diger"
+  },
+  {
+    "type": "channel",
+    "name": "Fanatik Film",
+    "slug": "fanatik-film",
+    "id": "UCAJcU9SesgVqsJ8M0l7zYrA",
+    "subfolder": "film"
+  },
+  {
+    "type": "channel",
+    "name": "Antik Mısır",
+    "slug": "dmax",
+    "id": "UCuEgo07zsZr_FTcNTETRS5Q",
+    "subfolder": "dizi"
   }
 ]
