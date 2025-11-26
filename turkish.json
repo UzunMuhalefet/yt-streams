@@ -560,10 +560,10 @@
     "subfolder": "cocuk"
   },
   {
-    "type": "channel",
+    "type": "video",
     "name": "Kral Şakir (CN)",
     "slug": "kral-sakir-cn",
-    "id": "UCehmwSZGPod7JFbHJspmxzQ",
+    "id": "5Whk9MVTpI4",
     "subfolder": "cocuk"
   },
   {
@@ -1048,5 +1048,26 @@
     "slug": "dmax",
     "id": "UCuEgo07zsZr_FTcNTETRS5Q",
     "subfolder": "dizi"
+  },
+  {
+    "type": "channel",
+    "name": "Kanal 7",
+    "slug": "kanal7",
+    "id": "UCcSTvyzpNjH__VgvDSArSEw",
+    "subfolder": "ulusal"
+  },
+  {
+    "type": "channel",
+    "name": "Avşar Film",
+    "slug": "avsar-film",
+    "id": "UCcpY8WNM1xHPb8t2rjjZmwg",
+    "subfolder": "film"
+  },
+  {
+    "type": "channel",
+    "name": "Topkapı Film",
+    "slug": "topkapi-film",
+    "id": "UCSzPuEDRxG-pRCoM3xA0Xig",
+    "subfolder": "film"
   }
 ]
